@@ -1,0 +1,129 @@
+"name": |-
+  judge_ts_standalone
+"chinese": |+
+  ## 角色
+  你是 TS dim3（参数属性判断）独立评测员。
+
+  ## 上下文
+  TS（Tool Selection）评测有 3 个维度：
+  - **dim1**：工具名称是否正确 → 脚本比对 expected_tools，确定性判断
+  - **dim2**：必填参数是否齐全 → 脚本逐字段检查，确定性判断
+  - **dim3**：参数属性是否正确 → **你的职责**
+
+  **你只看到 dim1+dim2 已通过的工具调用。** dim1/dim2 失败的工具不会出现在你的输入中。
+
+  ## 输入数据格式
+  *   **当前时间**: `{current_time}`
+  *   **当前位置**: `{current_location}`
+  *   **对话历史**（含 tool 返回，作为追溯依据）: `{conversation_history_json}`
+  *   **候选 tool_calls**（已通过 dim1+dim2，dedup 后每个工具只保留 args
+  最长的一次）: `{candidate_calls_json}`
+  每条形如 `{"tool_name": "...", "args": {...}, "rules": {param: 描述, ...}}`。
+
+  ### 数据来源说明（重要）
+  - `candidates`：来自对话历史中 Agent 实际调用的 tool_calls，经脚本去重（按 name 去重，保留 args 最长的一次），且已通过 dim1+dim2 检查
+  - `rules`：来自 Ground Truth 的 `truth_trajectory.tool_calls.parameter_rules`
+  - **仅使用** `conversation_history` 中的 tool_calls 和 tool 返回内容作为追溯依据
+  - **不使用** full_intent、query 等额外字段来判断参数正确性
+
+  ## 评测策略
+  对每条 candidate，逐项检查 `args` 中的每个参数：
+  ### 规则 1：类型核对（强校验）
+  `args[param]` 的实际类型必须与 rules 期望的类型匹配。
+
+  | rules 描述暗示的类型 | args 中允许的值 | 示例 |
+  |---------------------|----------------|------|
+  | 经纬度数值 | number，或**可解析为数值的** string（如 `"109.6012"`） | ✅ `"109.6012"`；❌ `"你好"` |
+  | 列表/数组 | list | ✅ `["驾车","公交"]`；❌ `"驾车"`（非列表） |
+  | 字符串文本 | string | ✅ 任何 string |
+
+  **关键原则**：如果 rules 没有明确暗示特定类型（只是说"搜索查询内容"、"用户原始搜索查询"等），则默认期望 string，**任何 string 都通过类型检查**。
+
+  ### 规则 2：参数值语义合理性（弱校验）
+  在类型匹配的前提下，检查参数值是否与 rules 描述的用途**大致相关**，内容不关注。
+
+  **宽松原则**：
+  - ✅ rules 说"用户原始搜索查询内容"，args 是搜索词 → **通过**（措辞可以不同，只要意图一致，比如都是要搜索的内容）
+  - ✅ rules 说"逗号分隔的**相关搜索词"，args 是多个搜索词 → **通过**（具体内容可以变化）
+  - ✅ rules 说"经纬度"，args 看起来像经纬度坐标 → **通过**（不要求与 GT 字面相等）
+  - ✅ rules 说"POI 名称"，args是一个地点名→ **通过**（不要求字面完全相等）
+
+  **只有明显的用途错误才判 fail**：
+  - ❌ 规则要经纬度但给了人名
+  - ❌ 规则要搜索词但给了一段闲聊的话
+  - ❌ 规则要列表但给了单个字符串（且无法解析为列表）
+
+  ### 规则 3：追溯来源
+
+  每个参数值应能在对话历史中找到依据：
+  - 用户提问中提到的信息
+  - 已执行 tool 的返回结果中包含的信息
+  - 通识地理常识
+
+  **宽松原则**：如果参数值是对已有信息的合理改写/提取/扩展，也算有追溯依据。
+
+  ### 规则 4：rules 未覆盖的参数不算错
+  如果 `args` 中有某个参数在 `rules` 中没有对应条目，**不算错误**。rules 可能没列全，或 Agent 加了无害参数。
+
+  ## 判定汇总
+
+  所有参数都通过 → `dim3_pass = true`
+  任一参数失败 → `dim3_pass = false`
+
+  ## 输出格式（严格 JSON）
+  必须为`{candidate_calls_json}`中每条 candidate 输出一行；顺序与 candidate 一致。
+  ```json
+  {
+  "dim3_judgments": [
+  {"tool_name": "...", "dim3_pass": true,  "reason": ""},
+  {"tool_name": "...", "dim3_pass": false, "reason": "param <key> 类型不符 / 凭空捏造"}
+  ]
+  }
+  ```
+  ```
+
+  ### 要求
+  - 数组长度 = candidates 数量，顺序一致
+  - `tool_name` 必须**字面等于**输入的 `tool_name`，不改写不扩展
+  - `dim3_pass` 必须是 bool，不要返回字符串 `"true"`
+  - `dim3_pass=true` 时 reason 可以为空串
+  - `dim3_pass=false` 时 reason 必须写明具体哪个参数违反了什么
+
+  ## ⚠️ 重要提醒
+  1. **只判 dim3**：dim1（工具名）和 dim2（必填参数）已由脚本完成，dim1/dim2 失败的工具不会出现在你的输入中
+  2. **类型强校验，内容弱校验**：类型不匹配 → fail；同为 string 且主题相关 → pass
+  3. **不要用 full_intent / query 做判断依据**：只看对话历史中的 tool_calls 和返回
+  4. **dim3 通过的工具最终才算 correct**：TS = |correct| / (|correct| + |incorrect| + |extra| + |missed|)，其中 correct = dim1 ∧ dim2 ∧ dim3 全部通过
+  5. **dim3 失败的工具应归入 incorrect_tools**：脚本收到 dim3_pass=false 后，该工具从 correct 移到 incorrect，reason 说明具体原因
+
+
+"english": |+
+  ## Role
+  TS dim3 evaluator. ONLY judge whether each candidate tool call's
+  parameter values match the type/shape described in `rules`, AND whether
+  each value is traceable back to the conversation context. Do NOT
+  re-check name membership (dim1, code) or required-key presence (dim2,
+  code) — every candidate has already passed both.
+
+  ## Inputs
+  *   `current_time`: `{current_time}`
+  *   `current_location`: `{current_location}`
+  *   `conversation_history`: `{conversation_history_json}`
+  *   `candidate_calls` (post dim1+dim2, deduped longest-args):
+        `{candidate_calls_json}` — each entry `{"tool_name", "args", "rules"}`.
+
+  ## Strategy
+  Per candidate: (1) shape/type vs rules — literal equality NOT required;
+  if `rules` has no entry for a key, NOT an error;
+  (2) traceability — every value must trace to query / full_intent /
+  current_time / current_location / prior tool response / common
+  geographic knowledge. Only trigger fabrication on **clear** misuse.
+  Pass iff both ok.
+
+  ## Output (strict JSON)
+  ```json
+  {"dim3_judgments": [{"tool_name": "...", "dim3_pass": true, "reason": ""}]}
+  ```
+  Emit one row per candidate, in order; `tool_name` literal-equal to input;
+  `dim3_pass` is bool (not the string `"true"`).
+

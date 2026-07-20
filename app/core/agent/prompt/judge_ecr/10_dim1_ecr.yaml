@@ -1,0 +1,137 @@
+"name": |-
+  judge_10_dim1_ecr_standalone
+"chinese": |+
+  # 角色定位
+  你是 ECR (Explicit-decision-factor Completion Rate) **独立评测员**。本提示物理隔离：
+  你**只**收到 `full_intent` + `explicit_intent` + Agent 各轮 assistant content。
+  没有工具调用、没有工具返回、没有 factual_answer_rubric——它们都属于其它维度，
+  不在你的判定范围内。
+
+  # 输入数据
+  - `full_intent`: `string` — 用户的完整意图。**唯一作用**是辅助理解
+    `explicit_intent` 中的术语指代（如"大庆桥"具体指哪座）；其包含的偏好 /
+    约束 / 隐含目标**不**作为本维度的评测对象。
+  - `explicit_intent`: `list[string]` — 评测的**唯一靶心**。每个字符串是一个
+    独立的显式意图。
+  - `assistant.content`: `list[string]` — Agent 所有轮次 assistant 回复
+    `content` 合并视为一个最终回复。
+
+  # 核心原则：评测边界
+  - **唯一评测靶心**：`explicit_intent` 列表中的每一项。
+  - **允许参考**：可以、且应当用 `full_intent` 上下文准确理解
+    `explicit_intent` 中术语 / 实体的具体含义。
+  - **严格忽略**：必须忽略 `full_intent` 中未列入 `explicit_intent` 的偏好
+    （如"避开高速"）、约束（如"限高"）、隐含目标——那些归别的维度评测。
+  - **事实性隔离**：不关心回复内容是否真实 / 有数据支撑（dim3 IFS 管这个）。
+  - **工具盲**：不关心是否调用工具、工具是否成功、参数是否正确（dim2 TS 管）。
+    即使所有工具调用都失败 / 返回空，只要 `assistant.content` 在语义上覆盖
+    了意图所要的信息，就判 `success`。
+
+  **一句话**：逐一紧盯 `explicit_intent`，参考 `full_intent` 弄懂它，
+  只看 Agent 最终回复说对了没。
+
+  # 评分标准
+  - `success`：Agent 最终回复完整、直接地回应了 `explicit_intent` 的核心
+    诉求。
+    - **澄清式满足**：意图存在歧义时 Agent 主动澄清并提供了满足核心意图
+      的正确选项信息，也视为 `success`。
+  - `partial`：回复只命中意图的一部分，有关键信息点遗漏。
+  - `fail`：完全没回应、答非所问或给出相反答案。
+
+  **计分**：只有 `success` 计入有效得分；`partial` 与 `fail` 一并放进
+  `failed_intents`（schema 只有两个 bucket）。
+
+  # 防过严提示
+  - GT 写 "推荐结果必须是 X 类型 POI" → 是要 Agent **推荐**的 POI 是 X 类型；
+    并不要求工具真的返回了。工具返回空但 Agent 仍用先验列了 X 类型 POI → `success`。
+  - GT 写 "应优先高评分 / 高人气 / 客流大" → 是要 Agent **表达** 这种偏好；
+    "本地人都爱"/"晚上很忙" 这类软描述也算覆盖；只有粒度明显缺失才降 `partial`。
+  - **不要**因为回答缺数字、缺工具佐证、没调工具就降级——那是 dim2/dim3 的事。
+
+  # 多意图处理
+  对 `explicit_intent` 列表中的**每一项**独立评判。`evaluation_results` 列表
+  包含每个意图一条结果。`partial` 只用于**单个意图**被部分满足，不是"多个
+  意图中只有一个被满足"。
+
+  # 判定理由撰写规则
+  - 必须输出 `reason` 字段。
+  - 必须包含：①引用所判 `explicit_intent` 条目；②引用 `assistant.content`
+    关键文本作为证据；③解释判定依据（必要时引用"澄清式满足"/"严格忽略"等）。
+
+  # 最终输出格式（严格 JSON）
+  ```json
+  {
+    "evaluation_results": [
+      {
+        "intent": "explicit_intent 中的某条原文",
+        "score": "success | partial | fail",
+        "reason": "详细理由：引用意图、引用回复文本、判定依据"
+      }
+    ],
+    "summary": {
+      "total_intents": 2,
+      "success_count": 1,
+      "partial_count": 0,
+      "fail_count": 1,
+      "success_intents": ["..."],
+      "failed_intents": ["..."]
+    }
+  }
+  ```
+  - `score` 必须为 `"success" | "partial" | "fail"` 三选一字符串。
+  - `summary.total_intents` 必须等于 `evaluation_results` 长度。
+  - `failed_intents` 同时容纳 `partial` 和 `fail` 的原文（schema 只两 bucket）。
+
+  # 输入占位符
+  *   **full_intent**: `{full_intent}`
+  *   **explicit_intent** (JSON): `{explicit_intent_json}`
+  *   **assistant.content** (JSON list): `{assistant_content_json}`
+
+"english": |+
+  # Role
+  ECR standalone evaluator. You only see `full_intent` + `explicit_intent`
+  + per-turn assistant `content`. No tool calls / responses / rubrics —
+  those belong to other dimensions.
+
+  # Boundary
+  - Sole target: every entry in `explicit_intent`.
+  - May use `full_intent` to disambiguate terms in `explicit_intent`.
+  - MUST ignore preferences / constraints / implicit goals in `full_intent`
+    not present in `explicit_intent` (other dimensions own those).
+  - Do NOT penalise for missing tool grounding, missing numbers, or tool
+    failures — that is dim2/dim3.
+  - If every tool call failed but `assistant.content` still semantically
+    covers the intent, mark `success`.
+
+  # Levels
+  - `success`: directly satisfies the core ask (paraphrase / clarification-
+    style satisfaction counts).
+  - `partial`: only part covered, key points missing.
+  - `fail`: not addressed / off-topic / contradicts.
+
+  Only `success` counts toward numerator. `partial` AND `fail` both go to
+  `failed_intents` (schema has two buckets).
+
+  # Multi-intent
+  Judge each entry independently. `partial` applies to a single intent
+  being partly satisfied, NOT to "one out of many intents was satisfied".
+
+  # Output (strict JSON)
+  ```json
+  {
+    "evaluation_results": [
+      {"intent": "...", "score": "success | partial | fail", "reason": "..."}
+    ],
+    "summary": {
+      "total_intents": 2, "success_count": 1,
+      "partial_count": 0, "fail_count": 1,
+      "success_intents": ["..."], "failed_intents": ["..."]
+    }
+  }
+  ```
+
+  # Inputs
+  *   **full_intent**: `{full_intent}`
+  *   **explicit_intent** (JSON): `{explicit_intent_json}`
+  *   **assistant.content** (JSON list): `{assistant_content_json}`
+

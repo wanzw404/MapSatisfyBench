@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent脚手架</title>
+    <style>
+        :root {
+            --primary: #00ff9d;
+            --secondary: #0066ff;
+            --warning: #ff9500;
+            --error: #ff4646;
+            --success: #00cc7a;
+            --background: #0a0e14;
+            --surface: #1a1f29;
+            --surface-light: #242b38;
+            --border: #2a3441;
+            --text-primary: #e6e6e6;
+            --text-secondary: #888;
+            --text-muted: #666;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+            margin: 0;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        #container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            margin: 0.5rem 0 0 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .panel {
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .control-section {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface-light);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.75rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 255, 157, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: var(--primary);
+            color: var(--background);
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            min-height: 44px;
+        }
+
+        button:hover {
+            background: var(--success);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 255, 157, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(42, 52, 65, 0.5);
+        }
+
+        .btn-danger {
+            background: var(--error);
+        }
+
+        .btn-danger:hover {
+            background: #cc3636;
+            box-shadow: 0 4px 12px rgba(255, 70, 70, 0.3);
+        }
+
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            background: var(--surface-light);
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .connected {
+            background: var(--success);
+        }
+
+        .disconnected {
+            background: var(--error);
+        }
+
+        .connecting {
+            background: var(--warning);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .stats {
+            display: flex;
+            gap: 1rem;
+            color: var(--text-secondary);
+        }
+
+        #output {
+            height: calc(100vh - 400px);
+            min-height: 400px;
+            padding: 0;
+            overflow-y: auto;
+            position: relative;
+            background: var(--background);
+        }
+
+        .log-entry {
+            padding: 0.75rem 1.5rem;
+            border-bottom: 1px solid rgba(42, 52, 65, 0.3);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .log-entry:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .log-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .timestamp {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .event-type {
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .event-data { background: rgba(0, 255, 157, 0.1); color: var(--primary); }
+        .event-error { background: rgba(255, 70, 70, 0.1); color: var(--error); }
+        .event-system { background: rgba(0, 102, 255, 0.1); color: var(--secondary); }
+        .event-raw { background: rgba(255, 149, 0, 0.1); color: var(--warning); }
+
+        .log-content {
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: inherit;
+            margin: 0;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            border-left: 3px solid var(--border);
+        }
+
+        .json-content {
+            border-left-color: var(--primary);
+        }
+
+        .error-content {
+            border-left-color: var(--error);
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .empty-state svg {
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .toolbar {
+            position: sticky;
+            top: 0;
+            background: var(--surface-light);
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-checkbox {
+            width: auto;
+            margin: 0;
+        }
+
+        .filter-label {
+            font-size: 0.8rem;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            #container {
+                padding: 1rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .stats {
+                flex-wrap: wrap;
+            }
+
+            #output {
+                height: calc(100vh - 500px);
+            }
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.25rem 0.5rem;
+            font-size: 0.7rem;
+            min-height: auto;
+        }
+
+        .copy-btn:hover {
+            background: var(--border);
+            color: var(--text-primary);
+            transform: none;
+            box-shadow: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <div class="header">
+            <h1>Agent应用调试</h1>
+            <p>用于测试SSE数据流</p>
+        </div>
+
+        <div class="panel">
+            <div class="control-section">
+                <div class="form-group">
+                    <label for="url">SSE 端点 URL</label>
+                    <input type="url" id="url" placeholder="https://api.example.com/stream" 
+                           value="/api/chat/stream">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="payload">对话输入</label>
+                        <textarea id="payload" placeholder="输入示例: 你好"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="method">请求方法</label>
+                        <select id="method">
+                            <option value="GET">GET</option>
+                            <option value="POST" selected>POST</option>
+                            <option value="PUT">PUT</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="threadId">对话threadId</label>
+                    <input type="text" id="threadId" placeholder='多轮对话使用, 可空。示例: abcd-efgh-hijk'
+                              rows="1"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="headers">自定义请求头 (JSON 格式)</label>
+                    <textarea id="headers" placeholder='{"Authorization": "Bearer token", "Custom-Header": "value"}'
+                              rows="3">{"Content-Type": "application/json", "Accept": "text/event-stream"}</textarea>
+                </div>
+
+                <div class="button-group">
+                    <button id="startBtn" onclick="startStream()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5,3 19,12 5,21"></polygon>
+                        </svg>
+                        开始连接
+                    </button>
+                    <button id="stopBtn" onclick="stopStream()" class="btn-danger" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="6" y="6" width="12" height="12"></rect>
+                        </svg>
+                        停止连接
+                    </button>
+                    <button onclick="clearLog()" class="btn-secondary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                        清空日志
+                    </button>
+                    <button onclick="exportLog()" class="btn-secondary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                        </svg>
+                        导出日志
+                    </button>
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <div class="status-left">
+                    <div class="status-indicator">
+                        <div class="status-dot disconnected" id="statusDot"></div>
+                        <span id="statusText">未连接</span>
+                    </div>
+                </div>
+                <div class="stats">
+                    <span>事件: <strong id="eventCount">0</strong></span>
+                    <span>错误: <strong id="errorCount">0</strong></span>
+                    <span>持续时间: <strong id="duration">00:00</strong></span>
+                </div>
+            </div>
+
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <div class="filter-group">
+                        <input type="checkbox" id="filterData" class="filter-checkbox">
+                        <label for="filterData" class="filter-label">数据</label>
+                    </div>
+                    <div class="filter-group">
+                        <input type="checkbox" id="filterError" class="filter-checkbox" checked>
+                        <label for="filterError" class="filter-label">错误</label>
+                    </div>
+                    <div class="filter-group">
+                        <input type="checkbox" id="filterSystem" class="filter-checkbox" checked>
+                        <label for="filterSystem" class="filter-label">系统</label>
+                    </div>
+                    <div class="filter-group">
+                        <input type="checkbox" id="filterRaw" class="filter-checkbox" checked>
+                        <label for="filterRaw" class="filter-label">原始</label>
+                    </div>
+                </div>
+                <div>
+                    <input type="checkbox" id="autoScroll" checked>
+                    <label for="autoScroll" class="filter-label">自动滚动</label>
+                </div>
+            </div>
+
+            <div id="output">
+                <div class="empty-state">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                    <h3>准备就绪</h3>
+                    <p>配置 SSE 端点并点击"开始连接"来监控数据流</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let abortController = null;
+        let startTime = null;
+        let durationTimer = null;
+        let eventCount = 0;
+        let errorCount = 0;
+        let logEntries = [];
+
+        // 格式化时间戳
+        function formatTimestamp() {
+            const now = new Date();
+            return now.toLocaleTimeString('zh-CN', { 
+                hour12: false, 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                fractionalSecondDigits: 3
+            });
+        }
+
+        // 格式化持续时间
+        function formatDuration(ms) {
+            const seconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        // 更新状态
+        function updateStatus(status, text) {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            statusDot.className = `status-dot ${status}`;
+            statusText.textContent = text;
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            document.getElementById('eventCount').textContent = eventCount;
+            document.getElementById('errorCount').textContent = errorCount;
+            
+            if (startTime) {
+                const duration = Date.now() - startTime;
+                document.getElementById('duration').textContent = formatDuration(duration);
+            }
+        }
+
+        // 判断内容是否为 JSON
+        function isJSON(str) {
+            try {
+                JSON.parse(str);
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        // 格式化 JSON
+        function formatJSON(str) {
+            try {
+                return JSON.stringify(JSON.parse(str), null, 2);
+            } catch {
+                return str;
+            }
+        }
+
+        // 添加日志条目
+        function addLogEntry(type, content, timestamp = null) {
+            const entry = {
+                type,
+                content,
+                timestamp: timestamp || formatTimestamp(),
+                id: Date.now() + Math.random()
+            };
+            
+            logEntries.push(entry);
+            renderLogEntry(entry);
+            
+            if (type === 'error') {
+                errorCount++;
+            } else if (type === 'data') {
+                eventCount++;
+            }
+            
+            updateStats();
+            
+            // 自动滚动
+            if (document.getElementById('autoScroll').checked) {
+                const output = document.getElementById('output');
+                output.scrollTop = output.scrollHeight;
+            }
+        }
+
+        // 渲染日志条目
+        function renderLogEntry(entry) {
+            const output = document.getElementById('output');
+            
+            // 移除空状态
+            const emptyState = output.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+            
+            const logDiv = document.createElement('div');
+            logDiv.className = 'log-entry';
+            logDiv.dataset.type = entry.type;
+            logDiv.dataset.id = entry.id;
+            
+            const isJsonContent = entry.type === 'data' && isJSON(entry.content);
+            const displayContent = isJsonContent ? formatJSON(entry.content) : entry.content;
+            
+            logDiv.innerHTML = `
+                <div class="log-header">
+                    <span class="timestamp">${entry.timestamp}</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="event-type event-${entry.type}">${entry.type}</span>
+                        <button class="copy-btn" onclick="copyToClipboard('${entry.id}')">复制</button>
+                    </div>
+                </div>
+                <pre class="log-content ${isJsonContent ? 'json-content' : ''} ${entry.type === 'error' ? 'error-content' : ''}">${displayContent}</pre>
+            `;
+            
+            output.appendChild(logDiv);
+            applyFilters();
+        }
+
+        // 复制到剪贴板
+        async function copyToClipboard(entryId) {
+            const entry = logEntries.find(e => e.id == entryId);
+            if (entry) {
+                try {
+                    await navigator.clipboard.writeText(entry.content);
+                    // 简单的反馈
+                    const btn = event.target;
+                    const originalText = btn.textContent;
+                    btn.textContent = '已复制';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                    }, 1000);
+                } catch (err) {
+                    console.error('复制失败:', err);
+                }
+            }
+        }
+
+        // 应用过滤器
+        function applyFilters() {
+            const filters = {
+                data: document.getElementById('filterData').checked,
+                error: document.getElementById('filterError').checked,
+                system: document.getElementById('filterSystem').checked,
+                raw: document.getElementById('filterRaw').checked
+            };
+            
+            const entries = document.querySelectorAll('.log-entry');
+            entries.forEach(entry => {
+                const type = entry.dataset.type;
+                entry.style.display = filters[type] ? 'block' : 'none';
+            });
+        }
+
+        // 开始流连接
+        async function startStream() {
+            if (abortController) {
+                abortController.abort();
+            }
+            
+            abortController = new AbortController();
+            
+            const url = document.getElementById('url').value.trim();
+            const payload = document.getElementById('payload').value.trim();
+            const threadId = document.getElementById('threadId').value.trim();
+            const method = document.getElementById('method').value;
+            const headersText = document.getElementById('headers').value.trim();
+
+            if (!payload) {
+                addLogEntry('error', '对话输入不能为空');
+                return;
+            }
+            
+            if (!url) {
+                addLogEntry('error', '请输入有效的 URL');
+                return;
+            }
+            
+            // 解析请求头
+            let headers = {};
+            if (headersText) {
+                try {
+                    headers = JSON.parse(headersText);
+                } catch (err) {
+                    addLogEntry('error', `请求头格式错误: ${err.message}`);
+                    return;
+                }
+            }
+            
+            // 更新 UI 状态
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            updateStatus('connecting', '连接中...');
+            
+            startTime = Date.now();
+            eventCount = 0;
+            errorCount = 0;
+            
+            // 启动持续时间计时器
+            durationTimer = setInterval(updateStats, 1000);
+            
+            addLogEntry('system', `开始连接到: ${url}`);
+            
+            try {
+                const requestOptions = {
+                    method,
+                    headers,
+                    signal: abortController.signal
+                };
+                
+                // 添加请求体（如果不是 GET 请求且有内容）
+                if (method !== 'GET' && payload) {
+                    if (headers['Content-Type']?.includes('application/json')) {
+                        try {
+                            // 尝试构建标准的聊天请求格式
+                            const chatRequest = {
+                                messages: [{ role: 'user', content: payload }],
+                            };
+                            if (threadId) {
+                                chatRequest.thread_id = threadId
+                            }
+                            requestOptions.body = JSON.stringify(chatRequest);
+                        } catch {
+                            requestOptions.body = payload;
+                        }
+                    } else {
+                        requestOptions.body = payload;
+                    }
+                }
+                
+                const response = await fetch(url, requestOptions);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status} ${response.statusText}`);
+                }
+                
+                updateStatus('connected', '已连接');
+                addLogEntry('system', `连接成功 (${response.status} ${response.statusText})`);
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    buffer += decoder.decode(value, { stream: true });
+                    
+                    // 处理 SSE 事件
+                    while (buffer.includes('\n\n')) {
+                        const eventEndIndex = buffer.indexOf('\n\n');
+                        const rawEvent = buffer.slice(0, eventEndIndex);
+                        buffer = buffer.slice(eventEndIndex + 2);
+                        
+                        if (rawEvent.trim()) {
+                            processSSEEvent(rawEvent);
+                        }
+                    }
+                }
+                
+                // 处理剩余数据
+                if (buffer.trim()) {
+                    addLogEntry('raw', buffer);
+                }
+                
+                addLogEntry('system', '连接正常结束');
+                
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    addLogEntry('error', `连接错误: ${err.message}`);
+                    updateStatus('disconnected', '连接失败');
+                } else {
+                    addLogEntry('system', '连接已手动停止');
+                }
+            } finally {
+                stopStream();
+            }
+        }
+
+        // 处理 SSE 事件
+        function processSSEEvent(rawEvent) {
+            // 记录原始事件（如果启用了原始过滤器）
+            if (document.getElementById('filterRaw').checked) {
+                addLogEntry('raw', rawEvent);
+            }
+            
+            // 解析 SSE 事件
+            const lines = rawEvent.split('\n');
+            let eventType = 'message';
+            let data = '';
+            
+            for (const line of lines) {
+                if (line.startsWith('event:')) {
+                    eventType = line.substring(6).trim();
+                } else if (line.startsWith('data:')) {
+                    data += line.substring(5).trim() + '\n';
+                }
+            }
+            
+            data = data.trim();
+            
+            if (data) {
+                // 尝试解析 JSON 数据
+                if (isJSON(data)) {
+                    try {
+                        const parsed = JSON.parse(data);
+                        if (parsed.error) {
+                            addLogEntry('error', JSON.stringify(parsed, null, 2));
+                        } else {
+                            addLogEntry('data', data);
+                        }
+                    } catch {
+                        addLogEntry('data', data);
+                    }
+                } else {
+                    addLogEntry('data', data);
+                }
+            }
+        }
+
+        // 停止流连接
+        function stopStream() {
+            if (abortController) {
+                abortController.abort();
+                abortController = null;
+            }
+            
+            if (durationTimer) {
+                clearInterval(durationTimer);
+                durationTimer = null;
+            }
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            updateStatus('disconnected', '未连接');
+        }
+
+        // 清空日志
+        function clearLog() {
+            const output = document.getElementById('output');
+            output.innerHTML = `
+                <div class="empty-state">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                    <h3>日志已清空</h3>
+                    <p>开始新的连接来监控数据流</p>
+                </div>
+            `;
+            
+            logEntries = [];
+            eventCount = 0;
+            errorCount = 0;
+            updateStats();
+        }
+
+        // 导出日志
+        function exportLog() {
+            if (logEntries.length === 0) {
+                alert('没有日志可导出');
+                return;
+            }
+            
+            const logText = logEntries.map(entry => 
+                `[${entry.timestamp}] [${entry.type.toUpperCase()}] ${entry.content}`
+            ).join('\n\n');
+            
+            const blob = new Blob([logText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sse-debug-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 事件监听器
+        document.addEventListener('DOMContentLoaded', function() {
+            // 过滤器变化监听
+            ['filterData', 'filterError', 'filterSystem', 'filterRaw'].forEach(id => {
+                document.getElementById(id).addEventListener('change', applyFilters);
+            });
+            
+            // 键盘快捷键
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 'Enter':
+                            e.preventDefault();
+                            if (!document.getElementById('startBtn').disabled) {
+                                startStream();
+                            }
+                            break;
+                        case 'k':
+                            e.preventDefault();
+                            clearLog();
+                            break;
+                        case 's':
+                            e.preventDefault();
+                            if (!document.getElementById('stopBtn').disabled) {
+                                stopStream();
+                            }
+                            break;
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

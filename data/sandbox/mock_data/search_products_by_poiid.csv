@@ -1,0 +1,5 @@
+﻿trace_id,tool_name,arguments,result
+ed34703d53d0bc4654b67c466cf8b672,search_products_by_poiid,"{""poiid"":""B0FFIHRQWR""}","[{""name"":""琶洲万胜围乐天智谷华新科创岛"",""price"":""1280.00元"",""details"":""""},{""name"":""北山地铁站步行5分钟，公寓大套间，一室一厅大阳台，直租"",""price"":""1680.00元"",""details"":""""}]"
+ed34703d53d0bc4654b67c466cf8b672,search_products_by_poiid,"{""poiid"":""B001423WYH""}","[{""name"":""（急售急售送车位业主包税）方便看房送全屋家私"",""price"":""2010000.00元"",""details"":""""},{""name"":""方便看房业主包税产权清晰送全屋家私性价比非常高"",""price"":""830000.00元"",""details"":""""}]"
+ed34703d53d0bc4654b67c466cf8b672,search_products_by_poiid,"{""poiid"":""B0J2D7WYWH""}","[{""name"":""4室2厅2卫"",""price"":""9000000.00元"",""details"":""""},{""name"":""4室2厅2卫"",""price"":""12000000.00元"",""details"":""""}]"
+ed34703d53d0bc4654b67c466cf8b672,search_products_by_poiid,"{""poiid"":""B0FFG1VH46""}","[{""name"":""押一付一民水民电精装电梯单间"",""price"":""1000.00元"",""details"":""""}]"

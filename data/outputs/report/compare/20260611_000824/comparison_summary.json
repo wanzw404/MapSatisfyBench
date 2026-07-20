@@ -1,0 +1,122 @@
+{
+  "run_ts": "20260611_000824",
+  "n_models": 2,
+  "models": [
+    {
+      "model": "qwen3.6-plus",
+      "n_runs": 1,
+      "merged": {
+        "n_runs": 1,
+        "n_cases": 10,
+        "ECR": 0.85,
+        "TS": 0.3873,
+        "IFS": 0.7375,
+        "IISR": 0.6682,
+        "AR": 0.6062,
+        "Eff": 0.5425,
+        "SES": 0.2895,
+        "CEI": 16.2507,
+        "n_Eff_cases": 10,
+        "E2E_Latency_mean_ms": 83619.42,
+        "InputTokens_mean": 16108.4,
+        "OutputTokens_mean": 11656.0,
+        "Tokens_mean": 27764.4
+      },
+      "total_counts": {
+        "n_total": 10,
+        "n_success": 10,
+        "n_skipped": 0,
+        "n_error": 0,
+        "n_unparseable": 0
+      },
+      "runs": [
+        {
+          "csv": "<项目地址>/data/outputs/evaluation_res/evaluation_result_20260611_000224_qwen3.6-plus.csv",
+          "label": "evaluation_result_20260611_000224_qwen3.6-plus",
+          "means": {
+            "n_runs": 1,
+            "n_cases": 10,
+            "ECR": 0.85,
+            "TS": 0.3873,
+            "IFS": 0.7375,
+            "IISR": 0.6682,
+            "AR": 0.6062,
+            "Eff": 0.5425,
+            "SES": 0.2895,
+            "CEI": 16.2507,
+            "n_Eff_cases": 10,
+            "E2E_Latency_mean_ms": 83619.42,
+            "InputTokens_mean": 16108.4,
+            "OutputTokens_mean": 11656.0,
+            "Tokens_mean": 27764.4
+          },
+          "counts": {
+            "n_total": 10,
+            "n_success": 10,
+            "n_skipped": 0,
+            "n_error": 0,
+            "n_unparseable": 0
+          }
+        }
+      ]
+    },
+    {
+      "model": "gpt-5.3-chat-0303-global",
+      "n_runs": 1,
+      "merged": {
+        "n_runs": 1,
+        "n_cases": 10,
+        "ECR": 0.9667,
+        "TS": 0.4083,
+        "IFS": 0.6,
+        "IISR": 0.6854,
+        "AR": 0.6701,
+        "Eff": 0.6084,
+        "SES": 0.3873,
+        "CEI": 59.0171,
+        "n_Eff_cases": 10,
+        "E2E_Latency_mean_ms": 24888.04,
+        "InputTokens_mean": 9624.2,
+        "OutputTokens_mean": 1173.0,
+        "Tokens_mean": 10797.2
+      },
+      "total_counts": {
+        "n_total": 10,
+        "n_success": 10,
+        "n_skipped": 0,
+        "n_error": 0,
+        "n_unparseable": 0
+      },
+      "runs": [
+        {
+          "csv": "<项目地址>/data/outputs/evaluation_res/evaluation_result_20260611_000704_gpt-5.3-chat-0303-global.csv",
+          "label": "evaluation_result_20260611_000704_gpt-5.3-chat-0303-global",
+          "means": {
+            "n_runs": 1,
+            "n_cases": 10,
+            "ECR": 0.9667,
+            "TS": 0.4083,
+            "IFS": 0.6,
+            "IISR": 0.6854,
+            "AR": 0.6701,
+            "Eff": 0.6084,
+            "SES": 0.3873,
+            "CEI": 59.0171,
+            "n_Eff_cases": 10,
+            "E2E_Latency_mean_ms": 24888.04,
+            "InputTokens_mean": 9624.2,
+            "OutputTokens_mean": 1173.0,
+            "Tokens_mean": 10797.2
+          },
+          "counts": {
+            "n_total": 10,
+            "n_success": 10,
+            "n_skipped": 0,
+            "n_error": 0,
+            "n_unparseable": 0
+          }
+        }
+      ]
+    }
+  ]
+}
